@@ -2,6 +2,7 @@
 const taskInput = document.getElementById("taskInput");
 const noteInput = document.getElementById("noteInput");
 const searchInput = document.getElementById("searchInput");
+const dueDateInput = document.getElementById("dueDateInput"); // Mukelani (grabs the date input field from the HTML)
 
 const todoList = document.getElementById("todoList");
 const progressList = document.getElementById("progressList");
@@ -174,6 +175,26 @@ languageSelect.addEventListener("change", () => {
   updateLanguage();
 });
 
+// ===================== DUE DATE HELPER - Mukelani =====================
+function getDueDateStatus(dueDate) {
+  // Mukelani (if no date was set, return empty string so nothing happens)
+  if (!dueDate) return "";
+
+  // Mukelani (get today's date and reset the time to midnight so we compare dates fairly)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Mukelani (turn the saved date string into a real Date object we can do maths on)
+  const due = new Date(dueDate);
+
+  // Mukelani (calculate how many days away the due date is — negative means it has passed)
+  const diffDays = (due - today) / (1000 * 60 * 60 * 24);
+
+  if (diffDays < 0) return "overdue";   // Mukelani (past due date — will turn card red)
+  if (diffDays <= 2) return "due-soon"; // Mukelani (due within 2 days — will turn card orange)
+  return "";                            // Mukelani (plenty of time — no special styling)
+}
+
 // ===================== TASKS =====================
 function renderTasks() {
 
@@ -185,7 +206,6 @@ function renderTasks() {
   recentTasks.innerHTML = "";
 
   let filteredTasks = tasks.filter(task => {
-
     if (currentFilter === "active") return !task.completed;
     if (currentFilter === "completed") return task.completed;
     return true;
@@ -193,10 +213,13 @@ function renderTasks() {
 
   filteredTasks.forEach(task => {
 
+    const dueDateStatus = getDueDateStatus(task.dueDate); // Mukelani (checks if this task is overdue, due soon, or fine)
+
     const card = document.createElement("div");
     card.className = "task-card";
 
     if (task.completed) card.classList.add("completed");
+    if (dueDateStatus) card.classList.add(dueDateStatus); // Mukelani (adds the overdue or due-soon CSS class to the card)
 
     card.innerHTML = `
       <div class="task-top">
@@ -206,22 +229,15 @@ function renderTasks() {
         </strong>
       </div>
 
+      ${task.dueDate ? `<p class="due-date">📅 Due: ${task.dueDate}</p>` : ""}
+
       <div class="task-buttons">
-
-        <button class="complete-btn" onclick="completeTask(${task.id})">
-          ${t.completeBtn}
-        </button>
-
-        <button class="progress-btn" onclick="moveProgress(${task.id})">
-          ${t.progressBtn}
-        </button>
-
-        <button class="delete-btn" onclick="deleteTask(${task.id})">
-          ${t.deleteBtn}
-        </button>
-
+        <button class="complete-btn" onclick="completeTask(${task.id})">${t.completeBtn}</button>
+        <button class="progress-btn" onclick="moveProgress(${task.id})">${t.progressBtn}</button>
+        <button class="delete-btn" onclick="deleteTask(${task.id})">${t.deleteBtn}</button>
       </div>
     `;
+    // Mukelani (the line above shows the date on the card — the ? means only show it if a date exists)
 
     if (task.status === "todo") todoList.appendChild(card);
     if (task.status === "progress") progressList.appendChild(card);
@@ -247,17 +263,9 @@ function renderNotes() {
 
     card.innerHTML = `
       <p>${note.text}</p>
-
       <div class="note-actions">
-
-        <button onclick="markImportant(${note.id})">
-          ${t.importantBtn}
-        </button>
-
-        <button class="delete-btn" onclick="deleteNote(${note.id})">
-          ${t.deleteBtn}
-        </button>
-
+        <button onclick="markImportant(${note.id})">${t.importantBtn}</button>
+        <button class="delete-btn" onclick="deleteNote(${note.id})">${t.deleteBtn}</button>
       </div>
     `;
 
@@ -276,10 +284,12 @@ taskInput.addEventListener("keypress", e => {
       id: Date.now(),
       text,
       completed: false,
-      status: "todo"
+      status: "todo",
+      dueDate: dueDateInput.value   // Mukelani (saves whatever date the user picked into the task object)
     });
 
     taskInput.value = "";
+    dueDateInput.value = "";        // Mukelani (clears the date field after the task is added so it's ready for the next one)
     saveData();
     renderTasks();
   }
@@ -310,7 +320,6 @@ searchInput.addEventListener("keypress", e => {
 
     document.querySelectorAll(".task-card, .note-card")
       .forEach(card => {
-
         const text = card.innerText.toLowerCase();
         card.style.display = text.includes(value) ? "block" : "none";
       });
@@ -326,7 +335,6 @@ function completeTask(id) {
     }
     return t;
   });
-
   saveData();
   renderTasks();
 }
@@ -336,7 +344,6 @@ function moveProgress(id) {
     if (t.id === id) t.status = "progress";
     return t;
   });
-
   saveData();
   renderTasks();
 }
@@ -359,22 +366,17 @@ function markImportant(id) {
     if (n.id === id) n.important = !n.important;
     return n;
   });
-
   saveData();
   renderNotes();
 }
 
 // ===================== FILTERS =====================
 document.querySelectorAll(".filter-btn").forEach(btn => {
-
   btn.addEventListener("click", () => {
-
     document.querySelectorAll(".filter-btn")
       .forEach(b => b.classList.remove("active"));
-
     btn.classList.add("active");
     currentFilter = btn.dataset.filter;
-
     renderTasks();
   });
 });
@@ -383,14 +385,3 @@ document.querySelectorAll(".filter-btn").forEach(btn => {
 updateLanguage();
 renderTasks();
 renderNotes();
-
-
-
-
- 
-
-  
-
- 
-
- 
