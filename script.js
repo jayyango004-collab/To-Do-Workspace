@@ -3,6 +3,7 @@ const taskInput = document.getElementById("taskInput");
 const noteInput = document.getElementById("noteInput");
 const searchInput = document.getElementById("searchInput");
 
+
 const todoList = document.getElementById("todoList");
 const progressList = document.getElementById("progressList");
 const completedList = document.getElementById("completedList");
