@@ -4,6 +4,7 @@ const noteInput = document.getElementById("noteInput");
 const searchInput = document.getElementById("searchInput");
 const dueDateInput = document.getElementById("dueDateInput"); // Mukelani (grabs the date input field from the HTML)
 
+
 const todoList = document.getElementById("todoList");
 const progressList = document.getElementById("progressList");
 const completedList = document.getElementById("completedList");
